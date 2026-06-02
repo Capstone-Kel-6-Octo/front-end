@@ -1,25 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../providers/transaction_provider.dart';
+import '../../providers/transaction_provider.dart';
 
-class BalanceCard extends StatefulWidget {
-  const BalanceCard({super.key});
+class BduiBalanceCard extends StatefulWidget {
+  final String persona;
+
+  const BduiBalanceCard({
+    super.key,
+    required this.persona,
+  });
 
   @override
-  State<BalanceCard> createState() => _BalanceCardState();
+  State<BduiBalanceCard> createState() => _BduiBalanceCardState();
 }
 
-class _BalanceCardState extends State<BalanceCard> {
+class _BduiBalanceCardState extends State<BduiBalanceCard> {
   bool _isBalanceVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    // Styling and value adaptations by user persona
+    Color tagColor;
+    String tagLabel;
+    Color actionIconBg;
+    String balanceText;
+
+    final txProvider = Provider.of<TransactionProvider>(context);
+    final double balance = txProvider.octoPayBalance;
+    final String dynamicBalanceText = 'IDR ${balance.toStringAsFixed(0).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}';
+
+    switch (widget.persona.toUpperCase()) {
+      case 'PRIORITAS':
+        tagColor = const Color(0xFF3D321F); // Dark gold
+        tagLabel = 'Priority Asset';
+        actionIconBg = const Color(0xFF3D321F);
+        balanceText = dynamicBalanceText;
+        break;
+      case 'PENGUSAHA':
+      case 'BISNIS':
+        tagColor = const Color(0xFF0A2540); // Deep business blue
+        tagLabel = 'Business Account';
+        actionIconBg = const Color(0xFF0A2540);
+        balanceText = dynamicBalanceText;
+        break;
+      case 'REGULER':
+      default:
+        tagColor = const Color(0xFF13504A); // Original dark green
+        tagLabel = 'E-Wallet';
+        actionIconBg = const Color(0xFF8B151A); // Brand maroon
+        balanceText = dynamicBalanceText;
+        break;
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -38,17 +73,14 @@ class _BalanceCardState extends State<BalanceCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF13504A), // Hijau gelap
+                  color: tagColor,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'E-Wallet',
-                  style: TextStyle(
+                child: Text(
+                  tagLabel,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -76,8 +108,7 @@ class _BalanceCardState extends State<BalanceCard> {
                   const SizedBox(width: 6),
                   GestureDetector(
                     onTap: () {
-                      Clipboard.setData(
-                          const ClipboardData(text: '123456788481'));
+                      Clipboard.setData(const ClipboardData(text: '123456788481'));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Nomor Rekening berhasil disalin'),
@@ -103,26 +134,18 @@ class _BalanceCardState extends State<BalanceCard> {
                       });
                     },
                     child: Icon(
-                      _isBalanceVisible
-                          ? Icons.visibility
-                          : Icons.visibility_outlined,
+                      _isBalanceVisible ? Icons.visibility : Icons.visibility_outlined,
                       size: 18,
                       color: Colors.grey.shade600,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Builder(
-                    builder: (context) {
-                      final provider = Provider.of<TransactionProvider>(context);
-                      final String balanceText = 'IDR ${provider.octoPayBalance.toStringAsFixed(0).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}';
-                      return Text(
-                        _isBalanceVisible ? balanceText : 'IDR •••',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      );
-                    }
+                  Text(
+                    _isBalanceVisible ? balanceText : 'IDR •••',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -133,7 +156,7 @@ class _BalanceCardState extends State<BalanceCard> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B151A),
+                  color: actionIconBg,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(

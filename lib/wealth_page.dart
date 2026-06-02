@@ -11,7 +11,7 @@ class WealthPage extends StatelessWidget {
         child: Text('Wealth Page'),
       ),
       bottomNavigationBar: CustomBottomNav(currentIndex: 2),
-      floatingActionButton: QrisFloatingButton(),
+      floatingActionButton: SizedBox(width: 68, height: 68),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }

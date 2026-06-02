@@ -11,52 +11,61 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Menggunakan BottomAppBar agar ada notch/lekukan untuk QRIS
-    return BottomAppBar(
-      color: Colors.white,
-      surfaceTintColor: Colors.white,
-      shadowColor: Colors.black,
-      elevation: 10,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      child: SizedBox(
-        height: 70, // tinggi navbar
-        child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(
-            context,
-            'Home',
-            0,
-            assetPath: 'assets/navbar/Home.png',
-            activeAssetPath: 'assets/navbar/HomeActive.png',
-          ),
-          _buildNavItem(
-            context,
-            'My Account',
-            1,
-            assetPath: 'assets/navbar/account.png',
-            activeAssetPath: 'assets/navbar/AccountActive.png',
-          ),
-          // Ruang kosong untuk tombol QRIS yang mengambang
-          const SizedBox(width: 65),
-          _buildNavItem(
-            context,
-            'Wealth',
-            2,
-            assetPath: 'assets/navbar/WealthLogo.png',
-            activeAssetPath: 'assets/navbar/WealthActive.png',
-          ),
-          _buildNavItem(
-            context,
-            'Settings',
-            3,
-            assetPath: 'assets/navbar/setting.png',
-            activeAssetPath: 'assets/navbar/SettingsActive.png',
-          ),
-        ],
-      ),
-      )
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        BottomAppBar(
+          color: Colors.white,
+          surfaceTintColor: Colors.white,
+          shadowColor: Colors.black,
+          elevation: 10,
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8.0,
+          child: SizedBox(
+            height: 70, // tinggi navbar
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  context,
+                  'Home',
+                  0,
+                  assetPath: 'assets/navbar/Home.png',
+                  activeAssetPath: 'assets/navbar/HomeActive.png',
+                ),
+                _buildNavItem(
+                  context,
+                  'My Account',
+                  1,
+                  assetPath: 'assets/navbar/account.png',
+                  activeAssetPath: 'assets/navbar/AccountActive.png',
+                ),
+                // Ruang kosong untuk tombol QRIS yang mengambang
+                const SizedBox(width: 65),
+                _buildNavItem(
+                  context,
+                  'Wealth',
+                  2,
+                  assetPath: 'assets/navbar/WealthLogo.png',
+                  activeAssetPath: 'assets/navbar/WealthActive.png',
+                ),
+                _buildNavItem(
+                  context,
+                  'Settings',
+                  3,
+                  assetPath: 'assets/navbar/setting.png',
+                  activeAssetPath: 'assets/navbar/SettingsActive.png',
+                ),
+              ],
+            ),
+          )
+        ),
+        Positioned(
+          top: -24, // Posisi statis tepat di tengah lekukan notch
+          child: const QrisFloatingButton(),
+        ),
+      ],
     );
   }
 

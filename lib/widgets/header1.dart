@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import '../models/homepage_config.dart';
+import 'bdui/bdui_menu_grid.dart';
 import 'custom_top_nav.dart';
 import 'info_banner.dart';
 import 'balance_card.dart';
-import 'menu_grid_section.dart';
 import '../E_Wallet.dart';
 import '../berita_promosi.dart';
 import '../services/session_manager.dart';
 
 class Header1 extends StatelessWidget {
-  const Header1({super.key});
+  final HomepageConfig config;
+  const Header1({super.key, required this.config});
 
   @override
   Widget build(BuildContext context) {
@@ -85,16 +87,16 @@ class Header1 extends StatelessWidget {
                           topRight: Radius.circular(24),
                         ),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Info Banner
-                          InfoBanner(),
+                          const InfoBanner(),
 
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
                           // Menu Grid & Tabs
-                          MenuGridSection(),
+                          BduiMenuGrid(prioritizedFeatures: config.features),
 
                           SizedBox(height: 30),
 

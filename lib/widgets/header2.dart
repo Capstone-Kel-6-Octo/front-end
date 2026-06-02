@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import '../models/homepage_config.dart';
+import 'bdui/bdui_menu_grid.dart';
 import 'custom_top_nav.dart';
-import 'menu_grid_section.dart';
 import 'balance_card.dart';
 import '../E_Wallet.dart';
 import '../berita_promosi.dart';
 
 class Header2 extends StatelessWidget {
-  const Header2({super.key});
+  final HomepageConfig config;
+  const Header2({super.key, required this.config});
 
   @override
   Widget build(BuildContext context) {
@@ -105,9 +107,9 @@ class Header2 extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 30),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: MenuGridSection(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: BduiMenuGrid(prioritizedFeatures: config.features),
                 ),
                 const SizedBox(height: 30),
                 const Padding(
