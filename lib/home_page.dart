@@ -199,17 +199,9 @@ class _HomePageState extends State<HomePage> {
           }
 
           // RENDER DYNAMIC HEADER LAYOUT BASED ON USER PERSONA ROLE
-          final config = provider.config!;
-          switch (config.persona.toUpperCase()) {
-            case 'PRIORITAS':
-              return Header3(config: config);
-            case 'PENGUSAHA':
-            case 'BISNIS':
-              return Header2(config: config);
-            case 'REGULER':
-            default:
-              return Header1(config: config);
-          }
+final config = provider.config!;
+return Header2(config: config); // Dipaksa selalu merender Header 2
+
         },
       ),
     );

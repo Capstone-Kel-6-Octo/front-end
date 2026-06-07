@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/homepage_config.dart';
+import '../../providers/homepage_provider.dart';
 import '../../services/interaction_service.dart';
 import '../../transfer_page.dart';
 
@@ -85,6 +87,13 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
           // Log interaction asynchronously in the background (Skenario 3)
           InteractionService.logInteraction(id, 'click');
 
+          // Refresh homepage layout to see recommendation updates in real-time
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              Provider.of<HomepageProvider>(context, listen: false).fetchHomepage();
+            }
+          });
+
           if (id == 1) {
             Navigator.push(
               context,
@@ -156,50 +165,75 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
   }
 
   Widget _buildGridUntukmuDynamic() {
-    // Map backend features database attributes:
-    // 1 -> Transfer, 2 -> Top Up, 3 -> Investasi, 4 -> Pembayaran, 5 -> Payroll
-    final List<Widget> dynamicItems = [];
+    // 1. Definisikan semua item yang tersedia (total 10 item)
+    final Map<String, Widget> allAvailableItems = {
+      'transfer': _buildGridItem(id: 1, label: 'Transfer', assetPath: 'assets/home/Transfer.png'),
+      'top_up': _buildGridItem(id: 2, label: 'Tagihan &\nIsi Ulang', assetPath: 'assets/home/Tagihan.png'),
+      'investasi': _buildGridItem(id: 3, label: 'Investasi', assetPath: 'assets/home/Investasi.png'),
+      'pembayaran': _buildGridItem(id: 4, label: 'Verify With\nOCTO', assetPath: 'assets/home/VerifiyOcto.png'),
+      'payroll': _buildGridItem(id: 5, label: 'Tabungan &\nDeposito', assetPath: 'assets/home/TabunganDeposito.png'),
+      'transaksi_tanpa_kartu': _buildGridItem(id: 99, label: 'Transaksi\nTanpa Kartu', assetPath: 'assets/home/TransaksiTanpaKartu.png'),
+      'kartu_elektronik': _buildGridItem(id: 98, label: 'Kartu\nElektronik', assetPath: 'assets/home/KartuElektronik.png'),
+      'jadwal_saya': _buildGridItem(id: 97, label: 'Jadwal Saya', assetPath: 'assets/home/JadwalSaya.png'),
+      'kode_promo': _buildGridItem(id: 96, label: 'Kode Promo', assetPath: 'assets/home/KodePromo.png'),
+      'adjust_favorite': _buildGridItem(id: 95, label: 'Adjust\nFavorite', assetPath: 'assets/home/AdjustFavorite.png', isBold: true),
+    };
 
+    final List<Widget> dynamicItems = [];
+    final Set<String> addedKeys = {};
+
+    // 2. Tambahkan item yang diprioritaskan oleh ML/Backend
     for (var feat in widget.prioritizedFeatures) {
-      switch (feat.name.toLowerCase()) {
-        case 'transfer':
-          dynamicItems.add(_buildGridItem(id: 1, label: 'Transfer', assetPath: 'assets/home/Transfer.png'));
-          break;
-        case 'top up':
-        case 'topup':
-          dynamicItems.add(_buildGridItem(id: 2, label: 'Tagihan &\nIsi Ulang', assetPath: 'assets/home/Tagihan.png'));
-          break;
-        case 'investasi':
-          dynamicItems.add(_buildGridItem(id: 3, label: 'Investasi', assetPath: 'assets/home/Investasi.png'));
-          break;
-        case 'pembayaran':
-          dynamicItems.add(_buildGridItem(id: 4, label: 'Verify With\nOCTO', assetPath: 'assets/home/VerifiyOcto.png'));
-          break;
-        case 'payroll':
-          dynamicItems.add(_buildGridItem(id: 5, label: 'Tabungan &\nDeposito', assetPath: 'assets/home/TabunganDeposito.png'));
-          break;
+      String key = feat.name.toLowerCase().trim();
+      
+      // Sinkronisasi alias nama fitur dari ML/Backend jika ada beda penamaan
+      if (key == 'top up' || key == 'topup' || key == 'tagihan_dan_isi_ulang' || key == 'tagihan_isi_ulang') {
+        key = 'top_up';
+      } else if (key == 'verify_with_octo') {
+        key = 'pembayaran';
+      } else if (key == 'tabungan_deposito') {
+        key = 'payroll';
+      }
+
+      // Normalisasi spasi ke underscore untuk mencocokkan key map
+      key = key.replaceAll(' ', '_');
+
+      if (allAvailableItems.containsKey(key) && !addedKeys.contains(key)) {
+        dynamicItems.add(allAvailableItems[key]!);
+        addedKeys.add(key);
       }
     }
 
-    // Add static items to make a total of 10 items (2 rows of 5)
-    // Add missing standard items if they are not in the dynamic list
-    final List<Widget> standardFavs = [
-      _buildGridItem(id: 99, label: 'Transaksi\nTanpa Kartu', assetPath: 'assets/home/TransaksiTanpaKartu.png'),
-      _buildGridItem(id: 98, label: 'Kartu\nElektronik', assetPath: 'assets/home/KartuElektronik.png'),
-      _buildGridItem(id: 97, label: 'Jadwal Saya', assetPath: 'assets/home/JadwalSaya.png'),
-      _buildGridItem(id: 96, label: 'Kode Promo', assetPath: 'assets/home/KodePromo.png'),
-      _buildGridItem(id: 95, label: 'Adjust\nFavorite', assetPath: 'assets/home/AdjustFavorite.png', isBold: true),
+    // 3. Tambahkan item sisa yang belum dimasukkan agar total tetap 10 item
+    // Urutan default sisa jika tidak disortir oleh ML
+    final List<String> defaultOrder = [
+      'transfer',
+      'top_up',
+      'transaksi_tanpa_kartu',
+      'kartu_elektronik',
+      'pembayaran',
+      'jadwal_saya',
+      'investasi',
+      'kode_promo',
+      'payroll',
+      'adjust_favorite',
     ];
 
-    final List<Widget> allGridItems = [...dynamicItems, ...standardFavs];
-
-    // Ensure we have exactly 10 grid spaces (2 rows of 5)
-    while (allGridItems.length < 10) {
-      allGridItems.add(_buildEmptyGridItem());
+    for (var key in defaultOrder) {
+      final normalizedKey = key.replaceAll(' ', '_');
+      if (!addedKeys.contains(normalizedKey) && allAvailableItems.containsKey(normalizedKey)) {
+        dynamicItems.add(allAvailableItems[normalizedKey]!);
+        addedKeys.add(normalizedKey);
+      }
     }
 
-    final firstRow = allGridItems.sublist(0, 5);
-    final secondRow = allGridItems.sublist(5, 10);
+    // Pastikan panjang list tepat 10 item (2 baris x 5 kolom)
+    while (dynamicItems.length < 10) {
+      dynamicItems.add(_buildEmptyGridItem());
+    }
+
+    final firstRow = dynamicItems.sublist(0, 5);
+    final secondRow = dynamicItems.sublist(5, 10);
 
     return Column(
       children: [

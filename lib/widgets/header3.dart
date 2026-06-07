@@ -5,6 +5,8 @@ import 'custom_top_nav.dart';
 import 'balance_card.dart';
 import '../E_Wallet.dart';
 import '../berita_promosi.dart';
+import 'package:provider/provider.dart';
+import '../providers/transaction_provider.dart';
 
 class Header3 extends StatelessWidget {
   final HomepageConfig config;
@@ -12,6 +14,10 @@ class Header3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final txProvider = Provider.of<TransactionProvider>(context);
+    final double balance = txProvider.octoPayBalance;
+    final String formattedBalance = 'IDR ${balance.toStringAsFixed(0).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}';
+
     return SingleChildScrollView(
       child: Stack(
         clipBehavior: Clip.none,
@@ -41,44 +47,99 @@ class Header3 extends StatelessWidget {
                           const SizedBox(height: 20),
                           Container(
                             margin: const EdgeInsets.symmetric(horizontal: 16),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF2F2F2),
-                              borderRadius: BorderRadius.circular(16),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
                                 )
                               ],
+                              border: Border.all(
+                                color: const Color(0xFF8B151A).withOpacity(0.12),
+                                width: 1.5,
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Image.asset(
-                                  'assets/header3.png',
-                                  fit: BoxFit.contain,
+                                // TOP SECTION: Title, Amount, and Saving Jar Image
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF8B151A).withOpacity(0.08),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: const Text(
+                                              'PRIORITAS FINANCE',
+                                              style: TextStyle(
+                                                color: Color(0xFF8B151A),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 10,
+                                                letterSpacing: 1.2,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          const Text(
+                                            'Ringkasan Pengeluaran',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          const Text(
+                                            'Bulan Ini',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            formattedBalance,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 24,
+                                              color: Color(0xFF8B151A),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Image.asset(
+                                      'assets/home/money saving 1.png',
+                                      height: 125,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Divider(
+                                  color: Colors.grey.shade100,
+                                  thickness: 1.5,
                                 ),
                                 const SizedBox(height: 16),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      _buildExpenseRow('Shopping', Icons.shopping_bag, Colors.green.shade700, 'IDR 1,500,000', 0.6),
-                                      const SizedBox(height: 12),
-                                      _buildExpenseRow('Foods & Drinks', Icons.fastfood, Colors.orange.shade700, 'IDR 1,000,000', 0.4),
-                                      const SizedBox(height: 12),
-                                      _buildExpenseRow('Bill Payment', Icons.receipt_long, Colors.brown.shade600, 'IDR 800,000', 0.3),
-                                      const SizedBox(height: 12),
-                                      _buildExpenseRow('Transport', Icons.directions_car, Colors.red.shade900, 'IDR 975,000', 0.35),
-                                    ],
-                                  ),
-                                )
+                                // BOTTOM SECTION: Category Progress Bars
+                                _buildExpenseRow('Shopping', Icons.shopping_bag_outlined, Colors.green.shade700, 'IDR 1,500,000', 0.6),
+                                const SizedBox(height: 16),
+                                _buildExpenseRow('Foods & Drinks', Icons.fastfood_outlined, Colors.orange.shade700, 'IDR 1,000,000', 0.4),
+                                const SizedBox(height: 16),
+                                _buildExpenseRow('Bill Payment', Icons.receipt_long_outlined, Colors.blue.shade700, 'IDR 800,000', 0.3),
+                                const SizedBox(height: 16),
+                                _buildExpenseRow('Transport', Icons.directions_car_outlined, Colors.red.shade700, 'IDR 975,000', 0.35),
                               ],
                             ),
                           ),
@@ -109,29 +170,53 @@ class Header3 extends StatelessWidget {
     );
   }
 
-  Widget _buildExpenseRow(String title, IconData icon, Color iconColor, String amount, double percent) {
+  Widget _buildExpenseRow(String title, IconData icon, Color categoryColor, String amount, double percent) {
     return Row(
       children: [
-        Icon(icon, color: iconColor, size: 28),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: categoryColor.withOpacity(0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: categoryColor, size: 20),
+        ),
         const SizedBox(width: 12),
         Expanded(
-          flex: 2,
-          child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-        ),
-        Expanded(
-          flex: 3,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              const SizedBox(height: 6),
-              LinearProgressIndicator(
-                value: percent,
-                backgroundColor: Colors.grey.shade300,
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B151A)),
-                minHeight: 6,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    amount,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-              )
+                child: LinearProgressIndicator(
+                  value: percent,
+                  backgroundColor: Colors.grey.shade100,
+                  valueColor: AlwaysStoppedAnimation<Color>(categoryColor),
+                  minHeight: 6,
+                ),
+              ),
             ],
           ),
         ),
