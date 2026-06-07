@@ -15,6 +15,7 @@ class Header1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -92,8 +93,6 @@ class Header1 extends StatelessWidget {
                         children: [
                           // Info Banner
                           const InfoBanner(),
-
-                          const SizedBox(height: 24),
 
                           // Menu Grid & Tabs
                           BduiMenuGrid(prioritizedFeatures: config.features),

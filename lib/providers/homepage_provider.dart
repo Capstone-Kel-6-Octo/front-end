@@ -12,19 +12,27 @@ class HomepageProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   /// Fetch dynamic, persona-driven homepage configuration from backend APIs
-  Future<void> fetchHomepage() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  Future<bool> fetchHomepage({bool silent = false}) async {
+    if (!silent) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
       _config = await HomepageService.fetchHomepageConfig();
       _errorMessage = null;
+      return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _config = null;
+      if (!silent) {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _config = null;
+      }
+      return false;
     } finally {
-      _isLoading = false;
+      if (!silent) {
+        _isLoading = false;
+      }
       notifyListeners();
     }
   }

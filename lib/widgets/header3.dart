@@ -19,6 +19,7 @@ class Header3 extends StatelessWidget {
     final String formattedBalance = 'IDR ${balance.toStringAsFixed(0).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}';
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Stack(
         clipBehavior: Clip.none,
         children: [

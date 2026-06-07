@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../models/homepage_config.dart';
-import '../../providers/homepage_provider.dart';
 import '../../services/interaction_service.dart';
 import '../../transfer_page.dart';
 
@@ -86,13 +84,6 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
         onTap: () {
           // Log interaction asynchronously in the background (Skenario 3)
           InteractionService.logInteraction(id, 'click');
-
-          // Refresh homepage layout to see recommendation updates in real-time
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              Provider.of<HomepageProvider>(context, listen: false).fetchHomepage();
-            }
-          });
 
           if (id == 1) {
             Navigator.push(

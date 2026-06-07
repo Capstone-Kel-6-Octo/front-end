@@ -4,14 +4,10 @@ import 'providers/homepage_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/consent_provider.dart';
 import 'services/session_manager.dart';
-import 'widgets/bdui/bdui_renderer.dart';
 import 'widgets/custom_bottom_nav.dart';
-import 'widgets/info_banner.dart';
 import 'widgets/header1.dart';
 import 'widgets/header2.dart';
 import 'widgets/header3.dart';
-import 'E_Wallet.dart';
-import 'berita_promosi.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -199,8 +195,63 @@ class _HomePageState extends State<HomePage> {
           }
 
           // RENDER DYNAMIC HEADER LAYOUT BASED ON USER PERSONA ROLE
-final config = provider.config!;
-return Header2(config: config); // Dipaksa selalu merender Header 2
+          final config = provider.config!;
+          Widget headerWidget;
+          switch (config.persona.toUpperCase()) {
+            case 'PRIORITAS':
+              headerWidget = Header3(config: config);
+              break;
+            case 'PENGUSAHA':
+            case 'BISNIS':
+              headerWidget = Header2(config: config);
+              break;
+            case 'REGULER':
+            default:
+              headerWidget = Header1(config: config);
+              break;
+          }
+
+          return RefreshIndicator(
+            color: const Color(0xFF8B151A),
+            backgroundColor: Colors.white,
+            onRefresh: () async {
+              final homeProvider = Provider.of<HomepageProvider>(context, listen: false);
+              final txProvider = Provider.of<TransactionProvider>(context, listen: false);
+              
+              // 1. Fetch Dynamic BDUI menus silently
+              final success = await homeProvider.fetchHomepage(silent: true);
+              
+              // 2. Fetch Transaction mutations & balance
+              await txProvider.fetchTransactions();
+              
+              // 3. Sinkronisasi data user dari response homepage jika ada setelah fetchTransactions
+              if (homeProvider.config != null) {
+                final cfg = homeProvider.config!;
+                if (cfg.userName != null && SessionManager.currentUser != null) {
+                  SessionManager.currentUser = UserModel(
+                    id: SessionManager.currentUser!.id,
+                    name: cfg.userName!,
+                    email: SessionManager.currentUser!.email,
+                    role: SessionManager.currentUser!.role,
+                  );
+                }
+                if (cfg.userBalance != null) {
+                  txProvider.updateBalance(cfg.userBalance!);
+                }
+              }
+
+              // Show feedback snackbar if background refresh fails
+              if (!success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Gagal memperbarui data. Silakan coba lagi.'),
+                    backgroundColor: Color(0xFF8B151A),
+                  ),
+                );
+              }
+            },
+            child: headerWidget,
+          );
 
         },
       ),

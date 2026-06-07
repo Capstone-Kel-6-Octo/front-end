@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/transaction_provider.dart';
 import 'services/transaction_service.dart';
+import 'widgets/pin_verification_sheet.dart';
+import 'transfer_success_page.dart';
 
 class TransferPage extends StatefulWidget {
   const TransferPage({super.key});
@@ -88,9 +90,24 @@ class _TransferPageState extends State<TransferPage> {
     });
   }
 
+  String _formatNumber(String s) {
+    String clean = s.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.isEmpty) return '';
+    final buffer = StringBuffer();
+    int digitsCount = clean.length;
+    for (int i = 0; i < digitsCount; i++) {
+      buffer.write(clean[i]);
+      int remaining = digitsCount - 1 - i;
+      if (remaining > 0 && remaining % 3 == 0) {
+        buffer.write(',');
+      }
+    }
+    return buffer.toString();
+  }
+
   void _quickSelectAmount(double amount) {
     setState(() {
-      _amountController.text = amount.toStringAsFixed(0);
+      _amountController.text = _formatNumber(amount.toStringAsFixed(0));
     });
   }
 
@@ -107,7 +124,18 @@ class _TransferPageState extends State<TransferPage> {
     }
 
     final receiverId = int.parse(_receiverController.text.trim());
-    final amount = double.parse(_amountController.text.trim());
+    final amount = double.parse(_amountController.text.replaceAll(',', '').trim());
+
+    if (amount < 10000) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Minimal transfer adalah IDR 10,000'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final txProvider = Provider.of<TransactionProvider>(context, listen: false);
 
     if (txProvider.octoPayBalance < amount) {
@@ -196,7 +224,13 @@ class _TransferPageState extends State<TransferPage> {
 
     if (confirmed != true) return;
 
+    // Tampilkan PIN Verification Sheet
+    if (!mounted) return;
+    final pinVerified = await PinVerificationSheet.show(context);
+    if (pinVerified != true) return;
+
     // Tampilkan Loading Overlay
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -215,9 +249,18 @@ class _TransferPageState extends State<TransferPage> {
       if (mounted) Navigator.pop(context);
 
       if (success) {
-        // Tampilkan Sukses Overlay
+        // Tampilkan Sukses Page
         if (mounted) {
-          _showSuccessPage(receiverId, _recipientName!, amount);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TransferSuccessPage(
+                receiverId: receiverId,
+                recipientName: _recipientName!,
+                amount: amount,
+              ),
+            ),
+          );
         }
       } else {
         if (mounted) {
@@ -242,113 +285,6 @@ class _TransferPageState extends State<TransferPage> {
     }
   }
 
-  void _showSuccessPage(int receiverId, String name, double amount) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          body: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF8B151A), Color(0xFF5E0B0E)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    color: Colors.white24,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: Colors.white,
-                    size: 80,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Transfer Berhasil!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Saldo Anda telah dikirimkan ke penerima',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Slip Resi
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      _buildReceiptRow('Penerima', name),
-                      const SizedBox(height: 8),
-                      _buildReceiptRow('ID Penerima', receiverId.toString()),
-                      const SizedBox(height: 8),
-                      _buildReceiptRow(
-                        'Jumlah',
-                        'IDR ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}',
-                        boldValue: true,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildReceiptRow('Tanggal', DateTime.now().toString().split('.')[0]),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF8B151A),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Text(
-                      'Kembali ke Beranda',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildConfirmRow(String label, String value, {bool isAmount = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -369,26 +305,6 @@ class _TransferPageState extends State<TransferPage> {
     );
   }
 
-  Widget _buildReceiptRow(String label, String value, {bool boldValue = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: boldValue ? FontWeight.bold : FontWeight.w500,
-            fontSize: 13,
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final txProvider = Provider.of<TransactionProvider>(context);
@@ -396,13 +312,15 @@ class _TransferPageState extends State<TransferPage> {
         'IDR ${txProvider.octoPayBalance.toStringAsFixed(0).replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9FB),
+      backgroundColor: const Color(0xFFF1F5F9),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        toolbarHeight: 72.0,
         title: const Text(
           'Transfer OCTO Pay',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF8B151A),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -412,31 +330,40 @@ class _TransferPageState extends State<TransferPage> {
             // Maroon Header Info
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               decoration: const BoxDecoration(
-                color: Color(0xFF8B151A),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+                gradient: LinearGradient(
+                  colors: [Color(0xFF8B151A), Color(0xFF4A080A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Saldo OCTO Pay Anda',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 13,
-                    ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Saldo OCTO Pay Anda',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        balanceText,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    balanceText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -450,9 +377,9 @@ class _TransferPageState extends State<TransferPage> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
@@ -478,15 +405,15 @@ class _TransferPageState extends State<TransferPage> {
                           hintText: 'Masukkan ID akun tujuan',
                           prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF8B151A)),
                           filled: true,
-                          fillColor: Colors.grey.shade50,
+                          fillColor: const Color(0xFFF8FAFC),
                           contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -560,20 +487,20 @@ class _TransferPageState extends State<TransferPage> {
                       TextFormField(
                         controller: _amountController,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [ThousandsSeparatorInputFormatter()],
                         decoration: InputDecoration(
                           hintText: 'Masukkan nominal',
                           prefixIcon: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFF8B151A)),
                           filled: true,
-                          fillColor: Colors.grey.shade50,
+                          fillColor: const Color(0xFFF8FAFC),
                           contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.0),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -584,9 +511,10 @@ class _TransferPageState extends State<TransferPage> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Tolong masukkan nominal transfer';
                           }
-                          final amt = double.tryParse(value);
-                          if (amt == null || amt <= 0) {
-                            return 'Nominal transfer harus lebih dari 0';
+                          final cleanValue = value.replaceAll(',', '').trim();
+                          final amt = double.tryParse(cleanValue);
+                          if (amt == null || amt < 10000) {
+                            return 'Minimal transfer adalah IDR 10,000';
                           }
                           return null;
                         },
@@ -642,8 +570,8 @@ class _TransferPageState extends State<TransferPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF8B151A).withOpacity(0.06),
-          border: Border.all(color: const Color(0xFF8B151A).withOpacity(0.15)),
+          color: const Color(0xFF8B151A).withValues(alpha: 0.06),
+          border: Border.all(color: const Color(0xFF8B151A).withValues(alpha: 0.15)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
@@ -655,6 +583,70 @@ class _TransferPageState extends State<TransferPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  static const separator = ',';
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    String textToFormat = newValue.text;
+    int selectionIndex = newValue.selection.end;
+    
+    if (newValue.text.length == oldValue.text.length - 1 &&
+        newValue.selection.end < oldValue.text.length &&
+        newValue.selection.end >= 0 &&
+        oldValue.text[newValue.selection.end] == separator) {
+      int deletePos = newValue.selection.end - 1;
+      if (deletePos >= 0) {
+        textToFormat = newValue.text.substring(0, deletePos) + newValue.text.substring(deletePos + 1);
+        selectionIndex = deletePos;
+      }
+    }
+
+    String cleanText = textToFormat.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final buffer = StringBuffer();
+    int digitsCount = cleanText.length;
+    for (int i = 0; i < digitsCount; i++) {
+      buffer.write(cleanText[i]);
+      int remaining = digitsCount - 1 - i;
+      if (remaining > 0 && remaining % 3 == 0) {
+        buffer.write(separator);
+      }
+    }
+
+    final formattedText = buffer.toString();
+    
+    int digitsBeforeCursor = 0;
+    for (int i = 0; i < selectionIndex; i++) {
+      if (textToFormat[i] != separator && RegExp(r'[0-9]').hasMatch(textToFormat[i])) {
+        digitsBeforeCursor++;
+      }
+    }
+    
+    int newSelectionIndex = 0;
+    int digitsPlaced = 0;
+    while (digitsPlaced < digitsBeforeCursor && newSelectionIndex < formattedText.length) {
+      if (formattedText[newSelectionIndex] != separator) {
+        digitsPlaced++;
+      }
+      newSelectionIndex++;
+    }
+    
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: newSelectionIndex),
     );
   }
 }

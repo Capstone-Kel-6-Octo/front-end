@@ -403,14 +403,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 10,
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: SwitchListTile(
-                    activeColor: const Color(0xFF8B151A),
+                    activeThumbColor: const Color(0xFF8B151A),
+                    activeTrackColor: const Color(0xFF8B151A).withValues(alpha: 0.5),
                     value: consentProvider.consentGiven,
                     onChanged: (bool value) {
                       consentProvider.toggleConsent(value);

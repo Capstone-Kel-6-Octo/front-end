@@ -33,16 +33,19 @@ class UserModel {
 class SessionManager {
   static String? token;
   static UserModel? currentUser;
+  static bool isInfoBannerDismissed = false;
 
   static bool get isLoggedIn => token != null;
 
   static void saveSession(String userToken, UserModel user) {
     token = userToken;
     currentUser = user;
+    isInfoBannerDismissed = false;
   }
 
   static void clearSession() {
     token = null;
     currentUser = null;
+    isInfoBannerDismissed = false;
   }
 }
