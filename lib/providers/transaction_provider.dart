@@ -31,7 +31,7 @@ class TransactionProvider with ChangeNotifier {
           }
         }
       }
-      _octoPayBalance = balance;
+      _octoPayBalance = balance < 0 ? 0.0 : balance;
     } catch (e) {
       debugPrint('[TransactionProvider] Error fetching: $e');
     } finally {
@@ -46,6 +46,12 @@ class TransactionProvider with ChangeNotifier {
     required double amount,
     required String type,
   }) async {
+    // Prevent negative balance from debit/payment transactions
+    if (type.toLowerCase() != 'credit' && _octoPayBalance < amount) {
+      debugPrint('[TransactionProvider] Error: Saldo tidak mencukupi untuk transaksi debit');
+      return false;
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -71,7 +77,7 @@ class TransactionProvider with ChangeNotifier {
 
   /// Set the balance directly (e.g. from homepage sync)
   void updateBalance(double balance) {
-    _octoPayBalance = balance;
+    _octoPayBalance = balance < 0 ? 0.0 : balance;
     notifyListeners();
   }
 
@@ -80,6 +86,10 @@ class TransactionProvider with ChangeNotifier {
     required int receiverId,
     required double amount,
   }) async {
+    if (_octoPayBalance < amount) {
+      throw Exception('Saldo tidak mencukupi');
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -91,6 +101,7 @@ class TransactionProvider with ChangeNotifier {
 
       if (success) {
         _octoPayBalance -= amount;
+        if (_octoPayBalance < 0) _octoPayBalance = 0.0;
         await fetchTransactions();
         return true;
       }

@@ -83,7 +83,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
-                                'Mutasi Rekening',
+                                'Mutasi Rekening Anda',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -95,35 +95,6 @@ class _MyAccountPageState extends State<MyAccountPage> {
                                 icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'TOTAL SALDO AKTIF',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'IDR ${provider.octoPayBalance.toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'OCTO Pay •••• 8481',
-                            style: TextStyle(
-                              color: Colors.white54,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
                           ),
                         ],
                       ),
