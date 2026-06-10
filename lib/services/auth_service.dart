@@ -18,13 +18,8 @@ class AuthService {
     if (_envBaseUrl.isNotEmpty) {
       return _envBaseUrl;
     }
-    if (kIsWeb) {
-      return 'http://localhost:3000';
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:3000';
-    }
-    return 'http://localhost:3000';
+
+    return 'https://acrobat-gaffe-compile.ngrok-free.dev';
   }
 
   /// Register a new user

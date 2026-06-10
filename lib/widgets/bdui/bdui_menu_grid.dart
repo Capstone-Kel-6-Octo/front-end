@@ -6,10 +6,7 @@ import '../../transfer_page.dart';
 class BduiMenuGrid extends StatefulWidget {
   final List<FeatureItem> prioritizedFeatures;
 
-  const BduiMenuGrid({
-    super.key,
-    required this.prioritizedFeatures,
-  });
+  const BduiMenuGrid({super.key, required this.prioritizedFeatures});
 
   @override
   State<BduiMenuGrid> createState() => _BduiMenuGridState();
@@ -82,8 +79,11 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          // Log interaction asynchronously in the background (Skenario 3)
-          InteractionService.logInteraction(id, 'click');
+          if (id != 10) {
+            //id 10 ga ada di db, jadi ga usah di log
+            // Log interaction asynchronously in the background (Skenario 3)
+            InteractionService.logInteraction(id, 'click');
+          }
 
           if (id == 1) {
             Navigator.push(
@@ -117,7 +117,10 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
                     top: -6,
                     left: -6,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(4),
@@ -158,16 +161,57 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
   Widget _buildGridUntukmuDynamic() {
     // 1. Definisikan semua item yang tersedia (total 10 item)
     final Map<String, Widget> allAvailableItems = {
-      'transfer': _buildGridItem(id: 1, label: 'Transfer', assetPath: 'assets/home/Transfer.png'),
-      'top_up': _buildGridItem(id: 2, label: 'Tagihan &\nIsi Ulang', assetPath: 'assets/home/Tagihan.png'),
-      'investasi': _buildGridItem(id: 3, label: 'Investasi', assetPath: 'assets/home/Investasi.png'),
-      'pembayaran': _buildGridItem(id: 4, label: 'Verify With\nOCTO', assetPath: 'assets/home/VerifiyOcto.png'),
-      'payroll': _buildGridItem(id: 5, label: 'Tabungan &\nDeposito', assetPath: 'assets/home/TabunganDeposito.png'),
-      'transaksi_tanpa_kartu': _buildGridItem(id: 99, label: 'Transaksi\nTanpa Kartu', assetPath: 'assets/home/TransaksiTanpaKartu.png'),
-      'kartu_elektronik': _buildGridItem(id: 98, label: 'Kartu\nElektronik', assetPath: 'assets/home/KartuElektronik.png'),
-      'jadwal_saya': _buildGridItem(id: 97, label: 'Jadwal Saya', assetPath: 'assets/home/JadwalSaya.png'),
-      'kode_promo': _buildGridItem(id: 96, label: 'Kode Promo', assetPath: 'assets/home/KodePromo.png'),
-      'adjust_favorite': _buildGridItem(id: 95, label: 'Adjust\nFavorite', assetPath: 'assets/home/AdjustFavorite.png', isBold: true),
+      'transfer': _buildGridItem(
+        id: 1,
+        label: 'Transfer',
+        assetPath: 'assets/home/Transfer.png',
+      ),
+      'top_up': _buildGridItem(
+        id: 2,
+        label: 'Tagihan &\nIsi Ulang',
+        assetPath: 'assets/home/Tagihan.png',
+      ),
+      'investasi': _buildGridItem(
+        id: 3,
+        label: 'Investasi',
+        assetPath: 'assets/home/Investasi.png',
+      ),
+      'pembayaran': _buildGridItem(
+        id: 4,
+        label: 'Verify With\nOCTO',
+        assetPath: 'assets/home/VerifiyOcto.png',
+      ),
+      'payroll': _buildGridItem(
+        id: 5,
+        label: 'Tabungan &\nDeposito',
+        assetPath: 'assets/home/TabunganDeposito.png',
+      ),
+      'transaksi_tanpa_kartu': _buildGridItem(
+        id: 6,
+        label: 'Transaksi\nTanpa Kartu',
+        assetPath: 'assets/home/TransaksiTanpaKartu.png',
+      ),
+      'kartu_elektronik': _buildGridItem(
+        id: 7,
+        label: 'Kartu\nElektronik',
+        assetPath: 'assets/home/KartuElektronik.png',
+      ),
+      'jadwal_saya': _buildGridItem(
+        id: 8,
+        label: 'Jadwal Saya',
+        assetPath: 'assets/home/JadwalSaya.png',
+      ),
+      'kode_promo': _buildGridItem(
+        id: 9,
+        label: 'Kode Promo',
+        assetPath: 'assets/home/KodePromo.png',
+      ),
+      'adjust_favorite': _buildGridItem(
+        id: 10,
+        label: 'Adjust\nFavorite',
+        assetPath: 'assets/home/AdjustFavorite.png',
+        isBold: true,
+      ),
     };
 
     final List<Widget> dynamicItems = [];
@@ -176,9 +220,12 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
     // 2. Tambahkan item yang diprioritaskan oleh ML/Backend
     for (var feat in widget.prioritizedFeatures) {
       String key = feat.name.toLowerCase().trim();
-      
+
       // Sinkronisasi alias nama fitur dari ML/Backend jika ada beda penamaan
-      if (key == 'top up' || key == 'topup' || key == 'tagihan_dan_isi_ulang' || key == 'tagihan_isi_ulang') {
+      if (key == 'top up' ||
+          key == 'topup' ||
+          key == 'tagihan_dan_isi_ulang' ||
+          key == 'tagihan_isi_ulang') {
         key = 'top_up';
       } else if (key == 'verify_with_octo') {
         key = 'pembayaran';
@@ -212,7 +259,8 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
 
     for (var key in defaultOrder) {
       final normalizedKey = key.replaceAll(' ', '_');
-      if (!addedKeys.contains(normalizedKey) && allAvailableItems.containsKey(normalizedKey)) {
+      if (!addedKeys.contains(normalizedKey) &&
+          allAvailableItems.containsKey(normalizedKey)) {
         dynamicItems.add(allAvailableItems[normalizedKey]!);
         addedKeys.add(normalizedKey);
       }
@@ -250,9 +298,21 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildGridItem(id: 1, label: 'Transfer', assetPath: 'assets/home/Transfer.png'),
-            _buildGridItem(id: 2, label: 'Tagihan &\nIsi Ulang', assetPath: 'assets/home/Tagihan.png'),
-            _buildGridItem(id: 99, label: 'Transaksi\nTanpa Kartu', assetPath: 'assets/home/TransaksiTanpaKartu.png'),
+            _buildGridItem(
+              id: 1,
+              label: 'Transfer',
+              assetPath: 'assets/home/Transfer.png',
+            ),
+            _buildGridItem(
+              id: 2,
+              label: 'Tagihan &\nIsi Ulang',
+              assetPath: 'assets/home/Tagihan.png',
+            ),
+            _buildGridItem(
+              id: 6,
+              label: 'Transaksi\nTanpa Kartu',
+              assetPath: 'assets/home/TransaksiTanpaKartu.png',
+            ),
             _buildEmptyGridItem(),
             _buildEmptyGridItem(),
           ],
@@ -268,9 +328,21 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildGridItem(id: 5, label: 'Tabungan &\nDeposito', assetPath: 'assets/home/TabunganDeposito.png'),
-            _buildGridItem(id: 98, label: 'Kartu\nElektronik', assetPath: 'assets/home/KartuElektronik.png'),
-            _buildGridItem(id: 3, label: 'Investasi', assetPath: 'assets/home/Investasi.png'),
+            _buildGridItem(
+              id: 5,
+              label: 'Tabungan &\nDeposito',
+              assetPath: 'assets/home/TabunganDeposito.png',
+            ),
+            _buildGridItem(
+              id: 7,
+              label: 'Kartu\nElektronik',
+              assetPath: 'assets/home/KartuElektronik.png',
+            ),
+            _buildGridItem(
+              id: 3,
+              label: 'Investasi',
+              assetPath: 'assets/home/Investasi.png',
+            ),
             _buildEmptyGridItem(),
             _buildEmptyGridItem(),
           ],
@@ -286,10 +358,27 @@ class _BduiMenuGridState extends State<BduiMenuGrid> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildGridItem(id: 97, label: 'Jadwal Saya', assetPath: 'assets/home/JadwalSaya.png'),
-            _buildGridItem(id: 96, label: 'Kode Promo', assetPath: 'assets/home/KodePromo.png'),
-            _buildGridItem(id: 4, label: 'Verify With\nOCTO', assetPath: 'assets/home/VerifiyOcto.png'),
-            _buildGridItem(id: 95, label: 'Adjust\nFavorite', assetPath: 'assets/home/AdjustFavorite.png', isBold: true),
+            _buildGridItem(
+              id: 8,
+              label: 'Jadwal Saya',
+              assetPath: 'assets/home/JadwalSaya.png',
+            ),
+            _buildGridItem(
+              id: 9,
+              label: 'Kode Promo',
+              assetPath: 'assets/home/KodePromo.png',
+            ),
+            _buildGridItem(
+              id: 4,
+              label: 'Verify With\nOCTO',
+              assetPath: 'assets/home/VerifiyOcto.png',
+            ),
+            _buildGridItem(
+              id: 10,
+              label: 'Adjust\nFavorite',
+              assetPath: 'assets/home/AdjustFavorite.png',
+              isBold: true,
+            ),
             _buildEmptyGridItem(),
           ],
         ),
