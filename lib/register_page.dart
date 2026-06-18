@@ -96,6 +96,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -107,17 +109,18 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           
           // Bottom Logo
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset(
-                'assets/OCTO_by_CIMB_Niaga 1 1.png',
-                width: 150,
+          if (!isKeyboardVisible)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Image.asset(
+                  'assets/OCTO_by_CIMB_Niaga 1 1.png',
+                  width: 150,
+                ),
               ),
             ),
-          ),
           
           SafeArea(
             child: SingleChildScrollView(
@@ -224,6 +227,43 @@ class _RegisterPageState extends State<RegisterPage> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Sudah punya user ID?
+                    const Text(
+                      'Sudah punya akun?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Login Sekarang button
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white, width: 1.5),
+                        backgroundColor: Colors.black.withOpacity(0.2),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Login Sekarang',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                     
                     const SizedBox(height: 120), // Provide space for bottom logo

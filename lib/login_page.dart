@@ -80,6 +80,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -91,17 +93,18 @@ class _LoginPageState extends State<LoginPage> {
           ),
           
           // Bottom Logo
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset(
-                'assets/OCTO_by_CIMB_Niaga 1 1.png',
-                width: 150,
+          if (!isKeyboardVisible)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Image.asset(
+                  'assets/OCTO_by_CIMB_Niaga 1 1.png',
+                  width: 150,
+                ),
               ),
             ),
-          ),
           
           SafeArea(
             child: SingleChildScrollView(
